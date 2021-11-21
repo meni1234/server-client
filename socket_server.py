@@ -14,14 +14,13 @@ def connection():
     return conn
 
 
-def upload(file_name, conn):
+def save(conn, file_name, file_size):
 
-    with open(file_name, "wb") as f:
-        file_size = struct.unpack("i", conn.recv(4))[0]
+    with open(file_name + '(copy)', "wb") as f:
 
         bytes_= 0
         print('Recieving...')
-        while bytes_ < file_size:
+        while bytes_< file_size:
             l = conn.recv(BUFFER_SIZE)
             f.write(l)
             bytes_ += 1024
@@ -33,10 +32,12 @@ if __name__== "__main__":
 
     conn = connection()
     command = conn.recv(BUFFER_SIZE).decode()
-    file_name = conn.recv(BUFFER_SIZE).decode().split('.')[0]
+    #file_name = conn.recv(BUFFER_SIZE).decode().split('.')
 
     if command == 'UPLOAD':
-        
-        upload(file_name, conn, file_size)
+        file_size = struct.unpack("i", conn.recv(4))[0]
+        file_name = conn.recv(BUFFER_SIZE).decode()
+
+        save(conn, file_name, file_size)
          
-    
+
