@@ -44,27 +44,39 @@ def upload(file_name):
 def download(file_name):
 
     print(f'Downloading file: {file_name}')
-    SOCK.send("DOWNLOAD")
-    SOCK.send(file_name)
-    SOCK.recv(BUFFER_SIZE)
-    file_size = struct.unpack("i", s.recv(4))[0]
+    SOCK.send(b"DOWNLOAD")
+    SOCK.send(file_name.encode())
     
-    with open(file_name, "wb") as f:
-        bytes_recieved = 0
+    file_size = struct.unpack("i", SOCK.recv(4))[0]
+
+    with open(file_name + '(copy)', "wb") as f:        
+                
+        bytes_= 0
         print('Downloading...')
-        while bytes_recieved < file_size:
-            l = s.recv(BUFFER_SIZE)
+        while bytes_< file_size:
+            l = SOCK.recv(BUFFER_SIZE)
             f.write(l)
-            bytes_recieved += BUFFER_SIZE
-        
+            bytes_ += 1024
+   
         print(f'Successfully downloaded {file_name}')
 
     return
 
-
-
-
+   
+def get_list():
     
+    SOCK.send(b"LIST")
+    file_size = struct.unpack("i", SOCK.recv(4))[0]
+
+    with open('list of files.txt', 'wb') as list_files:
+
+        bytes_= 0
+        while bytes_< file_size:
+            l = SOCK.recv(BUFFER_SIZE)
+            list_files.write(l)
+            bytes_ += 1024
+  
+
 
 def main():
 
@@ -72,20 +84,24 @@ def main():
           '       CONNECT-----------------------------connect to server\n'
           '       UPLOAD <path_of_your_file>------upload file on server\n'
           '       DOWNLOAD <file_name>--------download file from server\n'
-          '       LIST-------------------list all files exist on server')
+          '       LIST-------------------list all files exist on server\n'
+          '       END----------------------------------------------exit')
     prompt = input("Enter a command: ")
+
     if prompt == "CONNECT":
         connection()
         command = input("Enter a command: ")
+        
         if command[:6] == "UPLOAD":
             upload(command[7:])
+        
         elif command[:8] == "DOWNLOAD":
             download(command[9:])
+        
         elif command[:4] == "LIST":
             get_list()
 
 
-
 if __name__ == "__main__":
-    main() 
+    main()
 
